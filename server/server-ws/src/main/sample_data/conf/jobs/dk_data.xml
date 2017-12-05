@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Main configuration for global jobs.
+  -->
+
+<beans
+ xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+  <bean id="dk_data_job" class="org.marketcetera.server.ws.config.DBQuoteUpdate">
+  	
+  	<!-- The report history service provider. -->
+    <property name="historyService" ref="history_service"/>
+    
+    <!-- The active instruments for job.-->
+    <property name="instruments">
+	    <map>
+	        <entry key="EUR/USD" value="FOR"/>
+	        <entry key="GBP/USD" value="FOR"/>
+	        <entry key="USD/JPY" value="FOR"/>
+	        <entry key="EUR/GBP" value="FOR"/>
+	        <entry key="GBP/JPY" value="FOR"/>
+	        <entry key="USD/CAD" value="FOR"/>
+	    </map>
+    </property>
+        
+    <!-- The FIX Broker. -->
+    <property name="FIXBroker" ref="dk_data_broker"/>
+
+    <!-- The API Broker. -->
+    <property name="APIBroker" ref="dk_data_broker"/>
+    
+    <!-- The Period. -->
+    <property name="period" value="FIVE_MINS"/>
+    
+    <!-- The length of history back. -->
+    <property name="historyBack" value="DAILY"/>
+    
+  </bean>
+</beans>

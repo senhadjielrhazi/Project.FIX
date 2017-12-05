@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Main SA server configuration.
+  -->
+  
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+	
+	<import resource="properties.xml"/>
+	
+	<bean class="org.marketcetera.server.sa.config.SpringConfig">
+		<property name="moduleManager" ref="moduleManager"/>
+    	<property name="classLoader" ref="classLoader"/>
+	    
+	    <!-- The data publisher -->
+	    <property name="dataPublisher">
+	    	<bean class="org.marketcetera.core.publisher.PublisherEngine"/>
+	    </property>   
+	    
+		<!-- The SA hostname. -->
+    	<property name="serverHost" value="${metc.sa.host}"/>
+    	<!-- The SA port. -->
+		<property name="serverPort" value="${metc.sa.port}"/>
+		
+		<!-- SA Session Manager -->
+		<property name="sessionManager" ref="saSessionManager"/>
+	</bean>
+	
+	<!-- The module manager instance -->
+	<bean id="moduleManager" class="org.marketcetera.module.ModuleManager">
+	  <constructor-arg ref="classLoader"/>
+	  <property name="configurationProvider" ref="propertyConfig"/>
+	  <property name="refreshListener" ref="classLoader"/>
+	</bean>
+		
+	<!-- The current classloader -->
+	<bean id="classLoader" class="org.marketcetera.server.sa.JarClassLoader">
+		<constructor-arg ref="saInfoProvider"/>
+		<constructor-arg ref="currentLoader"/>
+	</bean>
+
+	<!-- The default configuration provider -->
+	<bean id="propertyConfig" class="org.marketcetera.server.sa.SAConfigurationProvider">
+		<constructor-arg ref="classLoader"/>
+		<!-- load receiver properties-->
+		<property name="receiverProperties">
+			<map>
+			  <entry key="URL" value="${metc.sa.broker.url}"/>
+			  <entry key="LogLevel" value="${metc.sa.recv.logLevel}"/>
+			  <entry key="SkipJAASConfiguration" value="${metc.sa.recv.skipJAASConfiguration}"/>
+			</map>
+		</property>
+		<!-- load client properties-->
+		<property name="clientProperties">
+			<map>
+			  <entry key="URL" value="${metc.jms.broker.url}"/>
+			  <entry key="Username" value="${metc.amq.user}"/>
+			  <entry key="Password" value="${metc.amq.password}"/>
+			  <entry key="Hostname" value="${metc.ws.host}"/>
+			  <entry key="Port" value="${metc.ws.port}"/>
+			  <entry key="IDPrefix" value="${metc.sa.idPrefix}"/>
+			</map>
+		</property>
+	</bean>
+	
+	<!-- info provider that contains info about the running application -->
+  	<bean id="saInfoProvider" class="org.marketcetera.core.StaticApplicationInfoProvider"/>
+  	
+	<!-- The current classloader -->
+	<bean id="currentLoader" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject" ref="class"/>
+		<property name="targetMethod" value="getClassLoader"/>
+	</bean>
+	
+	<!-- This bean is instantiated to get to the class loader instance -->
+	<bean id="class" class="java.lang.Class" factory-method="forName">
+		<constructor-arg value="org.marketcetera.server.sa.JarClassLoader"/>
+	</bean>
+	
+	<bean id="saSessionManager" class="org.marketcetera.util.ws.stateful.SessionManager">
+		<constructor-arg ref="saClientSessionFactory"/>
+		<constructor-arg value="-1"/> <!-- Session life in ms, -1 for unlimited -->
+	</bean>
+		
+	<!-- SA WS client session factory -->
+	<bean id="saClientSessionFactory" class="org.marketcetera.server.sa.security.ClientSessionFactory"/>
+</beans>

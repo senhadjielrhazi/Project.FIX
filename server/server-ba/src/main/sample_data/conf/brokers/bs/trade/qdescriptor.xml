@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Broker configuration: QuickFIX/J session descriptor.
+  - See
+  - http://www.quickfixj.org/quickfixj/usermanual/usage/configuration.html
+  -->
+
+<beans
+ xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+  <bean id="bs_trade_qdescriptor"
+   class="org.marketcetera.util.quickfix.SpringSessionDescriptor">
+    <property name="dictionary">
+      <map>
+        <entry key="BeginString" value="${bs.trade.qf.begin.string}"/>
+        <!--
+          - An acceptable value for this option is
+          - 'metc.DefaultDataDictionary', which will choose the standard
+          - QuickFIX/J dictionary for the FIX version deduced from the
+          - 'BeginString' option.
+          -->
+        <entry key="DataDictionary" value="${bs.trade.qf.data.dictionary}"/>
+        <entry key="SenderCompID" value="${bs.trade.qf.sender.comp.id}"/>
+        <entry key="TargetCompID" value="${bs.trade.qf.target.comp.id}"/>
+        <entry key="FileStorePath" value="${bs.trade.qf.store}"/>
+        <entry key="SocketAcceptAddress" value="${bs.trade.qf.host}"/>
+        <entry key="SocketAcceptPort" value="${bs.trade.qf.port}"/>
+        <entry key="Username" value="${bs.trade.qf.username}"/>
+        <entry key="Password" value="${bs.trade.qf.password}"/>
+      </map>
+    </property>
+  </bean>
+</beans>

@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.marketcetera.server.ws;singleton:=true
+Bundle-Vendor: Marketcetera, Inc.
+Bundle-Name: WS Server Plug-in
+Bundle-Version: 2.4.3
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: org.marketcetera.core,
+ org.marketcetera.client.ws,
+ org.junit4;resolution:=optional
+Eclipse-RegisterBuddy: org.marketcetera.core
+Export-Package: org.marketcetera.server.ws,
+ org.marketcetera.server.ws.brokers,
+ org.marketcetera.server.ws.config,
+ org.marketcetera.server.ws.filters,
+ org.marketcetera.server.ws.history
+Import-Package: com.ibm.icu.math

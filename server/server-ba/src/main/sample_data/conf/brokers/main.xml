@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Main broker configuration.
+  -->
+
+<beans
+ xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+  <import resource="dk/main.xml"/>
+  <import resource="bg/main.xml"/>
+  <!-- import resource="bs/main.xml"/ -->
+  
+  <import resource="qsettings.xml"/>
+
+  <!-- The Brokers need to be build first before kernels. -->
+  <bean id="metc_brokers" class="org.marketcetera.server.ba.brokers.spring.SpringBrokers">
+    <!-- The QuickFIX/J acceptor settings. -->
+    <property name="settings" ref="metc_qsettings"/>
+    
+    <!-- The brokers (order is not significant). -->
+    <property name="tradeBrokers">
+      <list>
+        <ref bean="dk_trade_broker"/>
+        <ref bean="bg_trade_broker"/>
+        <!-- ref bean="bs_trade_broker"/ -->
+      </list>
+    </property>
+    <property name="dataBrokers">
+      <list>
+        <ref bean="dk_data_broker"/>
+        <ref bean="bg_data_broker"/>
+        <!-- ref bean="bs_data_broker"/ -->
+      </list>
+    </property>
+  </bean>
+    
+  <!-- The DK Client kernel. -->
+  <bean id="dk_client" class="org.marketcetera.server.ba.brokers.api.DKClient" init-method="start"> 
+    <!-- The broker URL. -->
+    <property name="jnlpurl" value="${dk.client.br.jnlpurl}"/>
+    
+    <!-- The broker UserName. -->
+    <property name="username" value="${dk.client.br.username}"/>
+    
+    <!-- The broker Password. -->
+    <property name="password" value="${dk.client.br.password}"/> 
+    
+    <!-- The data broker. -->
+    <property name="dataBroker" ref="dk_data_broker"/> 
+    
+    <!-- The trade broker. -->
+    <property name="tradeBroker" ref="dk_trade_broker"/> 
+  </bean>
+  
+  <!-- The BG Client kernel. -->
+  <bean id="bg_client" class="org.marketcetera.server.ba.brokers.api.BGClient" init-method="start">     
+    <!-- The data broker. -->
+    <property name="dataBroker" ref="bg_data_broker"/> 
+    
+    <!-- The trade broker. -->
+    <property name="tradeBroker" ref="bg_trade_broker"/> 
+  </bean>
+  
+</beans>

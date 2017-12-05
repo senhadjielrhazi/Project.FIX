@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * CATSBF Ccfea Algorithmic Trading Strategy Backtesting Framework
+ * Copyright (C) 2011 Daniel Schiermer
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- The class that initializes the Ccfea Exchange. -->
+	<bean id="CcfeaExchange" class="org.marketcetera.exchange.CcfeaExchange"
+		scope="singleton">
+		<!-- Boolean value indicating whether or not the data loader should run 
+			before starting the servers. Note that the data only needs to be loaded once, 
+			and not every time the a backtest is performed. -->
+		<constructor-arg value="false" />
+		<!-- Boolean value indicating whether or not the servers should be started 
+			for backtesting. If you only wish to load the market data this should be 
+			false (should only be true for the first run) -->
+		<constructor-arg value="true" />
+		<!-- FIX server accepting orders -->
+		<constructor-arg ref="OrderAcceptor" />
+		<!-- FIX server accepting market data request -->
+		<constructor-arg ref="MarketDataAcceptor" />
+		<!-- Market data loader, used to load market data to the database -->
+		<constructor-arg ref="MarketDataLoader" />
+		<!-- List of reports -->
+		<constructor-arg>
+			<list>
+				<ref bean="CcfeaTradeLogReport" />
+				<ref bean="CcfeaSumCalcReport" />
+				<ref bean="CcfeaSampleMAStrategyReport" />
+			</list>
+		</constructor-arg>
+		<!-- Client portfolio -->
+		<constructor-arg ref="ClientPortfolio" />
+		<!-- Order book simulator -->
+		<constructor-arg ref="OrderBookSimulator" />
+	</bean>
+	
+	<!-- Backtesting report - logs all client actions and calculates profits 
+		and returns -->
+	<bean id="CcfeaSampleMAStrategyReport" class="org.marketcetera.exchange.report.CcfeaSampleMAStrategyReport"
+		scope="singleton">
+		<!-- File path -->
+		<constructor-arg value="reports/" />
+		<!-- File base name -->
+		<constructor-arg value="SampleMAStrategyReport" />
+		<!-- File extension -->
+		<constructor-arg value="txt" />
+		<!-- CSV File base name -->
+		<constructor-arg value="CSVSampleMAStrategyReport" />
+		<!-- Date format -->
+		<constructor-arg ref="PrintDateFormat" />
+	</bean>
+
+	<!-- Backtesting report - logs all client actions and calculates profits 
+		and returns -->
+	<bean id="CcfeaTradeLogReport" class="org.marketcetera.exchange.report.CcfeaTradeLogReport"
+		scope="singleton">
+		<!-- File path -->
+		<constructor-arg value="reports/" />
+		<!-- File base name -->
+		<constructor-arg value="TradeLogReport" />
+		<!-- File extension -->
+		<constructor-arg value="txt" />
+		<!-- Date format -->
+		<constructor-arg ref="PrintDateFormat" />
+	</bean>
+
+	<!-- Backtesting report - calculates some summarized data about the back 
+		test -->
+	<bean id="CcfeaSumCalcReport" class="org.marketcetera.exchange.report.CcfeaSumCalcReport"
+		scope="singleton">
+		<!-- File path -->
+		<constructor-arg value="reports/" />
+		<!-- File base name -->
+		<constructor-arg value="SumCalcReport" />
+		<!-- File extension -->
+		<constructor-arg value="txt" />
+		<!-- Date format -->
+		<constructor-arg ref="PrintDateFormat" />
+	</bean>
+
+	<!-- FIX server accepting market data requests -->
+	<bean id="MarketDataAcceptor" class="org.marketcetera.exchange.marketDataServer.MarketDataAcceptor"
+		scope="singleton">
+		<!-- Server configuration file path -->
+		<constructor-arg value="config/MDAcceptor.properties" />
+		<!-- Simulator used to replay the order book -->
+		<constructor-arg ref="OrderBookSimulator" />
+	</bean>
+
+	<!-- Simulator used to replay the order book -->
+	<bean id="OrderBookSimulator" class="org.marketcetera.exchange.backtesting.CcfeaOrderBookSimulator"
+		scope="singleton">
+		<!-- Wrapper for the simulation DateTime interval -->
+		<constructor-arg ref="SimulationDateTimeInterval" />
+		<!-- Simulation delay - if the simulation should wait between each second 
+			(from data) -->
+		<constructor-arg value="400" />
+		<!-- Database adapter used for market events -->
+		<constructor-arg ref="DatabaseAdapter" />
+	</bean>
+
+	<!-- Wrapper for the simulation DateTime interval -->
+	<bean id="SimulationDateTimeInterval"
+		class="org.marketcetera.exchange.backtesting.SimulationDateTimeInterval"
+		scope="singleton">
+		<!-- Simulation start date/time -->
+		<constructor-arg value="01032007 07:00:00" />
+		<!-- Simulation end date/time -->
+		<constructor-arg value="31032007 18:00:00" />
+		<!-- Date formatter for the date/time string -->
+		<constructor-arg ref="MarketDataLoaderDateFormat" />
+	</bean>
+
+	<!-- DatabaseAdapter used for the market events -->
+	<bean id="DatabaseAdapter" class="org.marketcetera.exchange.databaseAdapter.SQLiteAdapter"
+		scope="singleton">
+	</bean>
+
+	<!-- FIX Server accepting (and handling) orders from the client -->
+	<bean id="OrderAcceptor" class="org.marketcetera.exchange.orderServer.OrderAcceptor"
+		scope="singleton">
+		<!-- Strategy for executing orders against the order book and the client 
+			portfolio -->
+		<constructor-arg ref="OrderExecutionStrategy" />
+		<!-- Client portfolio -->
+		<constructor-arg ref="ClientPortfolio" />
+		<!-- Configuration file path -->
+		<constructor-arg value="config/OrderAcceptor.properties" />
+	</bean>
+
+	<!-- Strategy for executing orders against the order book and the client 
+		portfolio -->
+	<bean id="OrderExecutionStrategy"
+		class="org.marketcetera.exchange.orderExecutionStrategy.CcfeaOrderExecutionStrategy"
+		scope="singleton">
+	</bean>
+
+	<!-- Client portfolio instance -->
+	<bean id="ClientPortfolio" class="org.marketcetera.exchange.backtesting.ClientPortfolio"
+		scope="singleton">
+		<!-- The strategy used to execute orders -->
+		<constructor-arg ref="OrderExecutionStrategy" />
+	</bean>
+
+	<!-- The market data adapter that is used to load the market data into the 
+		database. -->
+	<bean id="MarketDataLoader"
+		class="org.marketcetera.exchange.marketDataLoader.sets.SETSMarketDataLoader"
+		scope="singleton">
+		<!-- Data format used for date/time values in the market data source -->
+		<constructor-arg index="0" ref="MarketDataLoaderDateFormat" />
+		<!-- File path for Order Detail file -->
+		<constructor-arg index="1" value="data/allGlaxoOrderDetail.CSV" />
+		<!-- File path for Order History file -->
+		<constructor-arg index="2" value="data/allGlaxoOrderHistory.CSV" />
+		<!-- File path for Trade Reports file -->
+		<constructor-arg index="3" value="data/allGlaxoTradeReport.CSV" />
+		<!-- Database adapter used by the AbstractMarketDataLoader base class (Note 
+			that the adapter consumed by the MarketDataLoader might be a different database.) -->
+		<constructor-arg index="4" ref="DatabaseAdapter" />
+	</bean>
+
+	<!-- Date format used for the dates in the market data CSV files -->
+	<bean id="MarketDataLoaderDateFormat" class="java.text.SimpleDateFormat"
+		scope="singleton">
+		<!-- Date format description -->
+		<constructor-arg value="ddMMyyyy HH:mm:ss" />
+	</bean>
+
+	<!-- Full path to the SQLite database that will be used. Default: folder 
+		"db", database name "ccfeaHistoricalData.db" -->
+	<bean id="DatabaseFullName" class="java.lang.String" scope="singleton">
+		<constructor-arg value="db/ccfeaHistoricalData.db" />
+	</bean>
+
+	<!-- Table name for the table containing all tick data for the given security -->
+	<bean id="MarketDataTableName" class="java.lang.String" scope="singleton">
+		<constructor-arg value="MARKET_EVENTS" />
+	</bean>
+
+	<!-- Date format used whenever a date is printed as string -->
+	<bean id="PrintDateFormat" class="java.text.SimpleDateFormat"
+		scope="singleton">
+		<constructor-arg value="dd-MM-yyyy HH:mm:ss" />
+	</bean>
+
+	<!-- The symbol for which the order book is replayed -->
+	<bean id="Symbol" class="java.lang.String" scope="singleton">
+		<constructor-arg value="GSK" />
+	</bean>
+
+	<!-- The clientID given to the market data events being replayed by the 
+		server. Is generally used to distinguish between orders coming from the historical 
+		data and the client -->
+	<bean id="ServerID" class="java.lang.String" scope="singleton">
+		<constructor-arg value="CCFEA" />
+	</bean>
+
+	<!-- The clientID given to the market events fired by the client. Is generally 
+		used to distinguish between orders coming from the historical data and the 
+		client -->
+	<bean id="ClientID" class="java.lang.String" scope="singleton">
+		<constructor-arg value="ORS-BS" />
+	</bean>
+
+	<!-- Specifies whether or not orders, execution reports and generated market 
+		data should have a timestamp matching the current date/time of the simulation 
+		- if true. If false, the values corresponding to the current time is used. -->
+	<bean id="UseSimulationTime" class="java.lang.Boolean"
+		scope="singleton">
+		<constructor-arg value="true" />
+	</bean>
+	
+	<bean id="JDBCDriver" class="java.lang.String" scope="singleton">
+		<constructor-arg value="org.sqlite.JDBC" />
+	</bean>
+
+</beans>

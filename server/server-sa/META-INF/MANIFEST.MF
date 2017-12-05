@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.marketcetera.server.sa;singleton:=true
+Bundle-Vendor: Marketcetera, Inc.
+Bundle-Name: SA Server Plug-in
+Bundle-Version: 2.4.3
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: org.marketcetera.core,
+ org.marketcetera.client.sa,
+ org.junit4;resolution:=optional
+Eclipse-RegisterBuddy: org.marketcetera.core
+Export-Package: org.marketcetera.server.sa,
+ org.marketcetera.server.sa.config

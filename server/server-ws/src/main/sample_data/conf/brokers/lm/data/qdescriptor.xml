@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Broker configuration: QuickFIX/J session descriptor.
+  - See
+  - http://www.quickfixj.org/quickfixj/usermanual/usage/configuration.html
+  -->
+
+<beans
+ xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+  <bean id="lm_data_qdescriptor"
+   class="org.marketcetera.util.quickfix.SpringSessionDescriptor">
+    <property name="dictionary">
+      <map>
+        <entry key="BeginString" value="${lm.data.qf.begin.string}"/>
+        <!--
+          - An acceptable value for this option is
+          - 'metc.DefaultDataDictionary', which will choose the standard
+          - QuickFIX/J dictionary for the FIX version deduced from the
+          - 'BeginString' option.
+          -->
+        <entry key="DataDictionary" value="${lm.data.qf.data.dictionary}"/>
+        <entry key="SenderCompID" value="${lm.data.qf.sender.comp.id}"/>
+        <entry key="TargetCompID" value="${lm.data.qf.target.comp.id}"/>
+        <entry key="FileStorePath" value="${lm.data.qf.store}"/>
+        <entry key="SocketConnectHost" value="${lm.data.qf.host}"/>
+        <entry key="SocketConnectPort" value="${lm.data.qf.port}"/>
+		<entry key="Username" value="${lm.data.qf.username}"/>
+		<entry key="Password" value="${lm.data.qf.password}"/>
+		<entry key="SocketUseSSL" value="${lm.data.qf.usessl}"/>
+      </map>
+    </property>
+  </bean>
+</beans>

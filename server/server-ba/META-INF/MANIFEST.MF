@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.marketcetera.server.ba;singleton:=true
+Bundle-Vendor: Marketcetera, Inc.
+Bundle-Name: BA Server Plug-in
+Bundle-Version: 2.4.3
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: org.marketcetera.core,
+ org.junit4;resolution:=optional
+Eclipse-RegisterBuddy: org.marketcetera.core
+Export-Package: org.marketcetera.server.ba,
+ org.marketcetera.server.ba.brokers,
+ org.marketcetera.server.ba.config,
+ org.marketcetera.server.ba.filters,
+ org.tradingsystem.api,
+ org.neurosystem.client.api.brokers.dk,
+ org.neurosystem.modules.marketdata.assets.basic,
+ org.neurosystem.platform,
+ org.neurosystem.util.log,
+ org.technosystem.modules,
+ org.technosystem.platform,
+ org.technosystem.util
+Import-Package: com.ibm.icu.math

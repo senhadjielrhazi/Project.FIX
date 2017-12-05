@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Broker configuration.
+  -->
+
+<beans
+ xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+  <import resource="qdescriptor.xml"/>
+  <import resource="modifiers.xml"/>
+  <import resource="routes.xml"/>
+  <import resource="ps_modifiers.xml"/>
+  <import resource="resp_modifiers.xml"/>
+
+  <bean id="sf_trade_broker" class="org.marketcetera.server.ws.brokers.spring.SpringBroker">
+    <!-- The broker name (an arbitrary string). -->
+    <property name="name" value="${sf.trade.name}"/>
+    <!-- The broker ID (an arbitrary string, but a short one is best). -->
+    <property name="brokerID" value="${sf.trade.id}"/>
+    <!-- Indicates if the broker requires a FIX Logout message on disconnect -->
+    <property name="fixLogoutRequired" value="${sf.trade.fixlogoutrequired}"/>
+    <!-- The QuickFIX/J session descriptor. -->
+    <property name="descriptor" ref="sf_trade_qdescriptor"/>
+    <!-- The message modifiers. -->
+    <!--
+    <property name="modifiers" ref="sf_trade_modifiers"/>
+    -->
+    <!-- The routing filter. -->
+    <!--
+    <property name="routes" ref="sf_trade_routes"/>
+    -->
+    <!-- The pre-sending message modifiers. -->
+    <!--
+    <property name="preSendModifiers" ref="sf_trade_ps_modifiers"/>
+    -->
+    <!-- The response message modifiers. -->
+    <!--
+    <property name="responseModifiers" ref="sf_trade_resp_modifiers"/>
+    -->
+  </bean>
+</beans>

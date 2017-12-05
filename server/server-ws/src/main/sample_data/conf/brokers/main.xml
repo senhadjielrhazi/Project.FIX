@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Main broker configuration.
+  -->
+
+<beans
+ xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+  <import resource="fe/main.xml"/> 
+  <import resource="lm/main.xml"/> 
+  <import resource="dk/main.xml"/>
+  <!-- import resource="at/main.xml"/>
+  <import resource="sf/main.xml"/>
+  <import resource="mc/main.xml"/>
+  <import resource="bs/main.xml"/>
+  <import resource="bg/main.xml"/ -->
+  
+  <import resource="qsettings.xml"/>
+
+  <bean id="metc_brokers" class="org.marketcetera.server.ws.brokers.spring.SpringBrokers">
+    <!-- The QuickFIX/J initiator settings. -->
+    <property name="settings" ref="metc_qsettings"/>
+    
+    <!-- The brokers (order is not significant). -->
+    <property name="tradeBrokers">
+      <list>
+        <ref bean="fe_trade_broker"/>
+        <ref bean="lm_trade_broker"/>
+        <ref bean="dk_trade_broker"/>
+        <!-- ref bean="at_trade_broker"/>
+        <ref bean="sf_trade_broker"/>
+        <ref bean="mc_trade_broker"/>
+        <ref bean="bs_trade_broker"/>
+        <ref bean="bg_trade_broker"/ -->
+      </list>
+    </property>
+    <property name="dataBrokers">
+      <list>
+        <ref bean="fe_data_broker"/>
+        <ref bean="lm_data_broker"/>
+        <ref bean="dk_data_broker"/>
+        <!-- ref bean="at_data_broker"/>
+        <ref bean="sf_data_broker"/>
+        <ref bean="mc_data_broker"/>
+        <ref bean="bs_data_broker"/>
+        <ref bean="bg_data_broker"/ -->
+      </list>
+    </property>
+  </bean>
+</beans>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Main configuration for global jobs.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:util="http://www.springframework.org/schema/util"
+xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+  <!-- import resource="dk_data.xml"/>
+  <import resource="bg_data.xml"/ -->
+  <util:list id="metc_data_jobs" value-type="org.marketcetera.ws.server.BasicJob">
+		<!-- ref bean="dk_data_job"/ -->
+		<!-- ref bean="bg_data_job"/ -->
+  </util:list>
+</beans>

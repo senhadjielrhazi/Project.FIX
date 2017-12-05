@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+ xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+<bean id="lm_symbolConverter" class="org.marketcetera.server.ws.filters.SymbolConverter">
+   <property name="symbols">
+	<map>
+		<entry  key="UK100" value="100089"/>
+		<entry  key="US30" value="100091"/>
+		<entry  key="US500" value="100093"/>
+		<entry  key="US100" value="100095"/>
+		<entry  key="GER30" value="100097"/>
+		<entry  key="FRA40" value="100099"/>
+		<entry  key="EU50" value="100101"/>
+		<entry  key="JAP225" value="100105"/>
+		<entry  key="AUS200" value="100888"/>
+		<entry  key="BRENT" value="100805"/>
+		<entry  key="WTI" value="100800"/>
+		<entry  key="NGAS" value="100926"/>	
+		<entry  key="EUR/USD" value="4001"/>
+		<entry  key="GBP/USD" value="4002"/>
+		<entry  key="EUR/GBP" value="4003"/>
+		<entry  key="USD/JPY" value="4004"/>
+		<entry  key="GBP/JPY" value="4005"/>
+		<entry  key="EUR/JPY" value="4006"/>
+		<entry  key="AUD/USD" value="4007"/>
+		<entry  key="AUD/JPY" value="4008"/>
+		<entry  key="CHF/JPY" value="4009"/>
+		<entry  key="USD/CHF" value="4010"/>
+		<entry  key="EUR/CHF" value="4011"/>
+		<entry  key="GBP/CHF" value="4012"/>
+		<entry  key="USD/CAD" value="4013"/>
+		<entry  key="GBP/CAD" value="4014"/>
+		<entry  key="EUR/CAD" value="4015"/>
+		<entry  key="EUR/AUD" value="4016"/>
+		<entry  key="GBP/AUD" value="4017"/>
+		<entry  key="EUR/CZK" value="100479"/>
+		<entry  key="GBP/CZK" value="100481"/>
+		<entry  key="USD/CZK" value="100483"/>
+		<entry  key="EUR/DKK" value="100485"/>
+		<entry  key="GBP/DKK" value="100487"/>
+		<entry  key="USD/DKK" value="100489"/>
+		<entry  key="EUR/HKD" value="100491"/>
+		<entry  key="GBP/HKD" value="100493"/>
+		<entry  key="USD/HKD" value="100495"/>
+		<entry  key="EUR/HUF" value="100497"/>
+		<entry  key="GBP/HUF" value="100499"/>
+		<entry  key="USD/HUF" value="100501"/>
+		<entry  key="EUR/MXN" value="100503"/>
+		<entry  key="GBP/MXN" value="100505"/>
+		<entry  key="USD/MXN" value="100507"/>
+		<entry  key="EUR/NOK" value="100509"/>
+		<entry  key="GBP/NOK" value="100511"/>
+		<entry  key="USD/NOK" value="100513"/>
+		<entry  key="EUR/NZD" value="100515"/>
+		<entry  key="GBP/NZD" value="100517"/>
+		<entry  key="EUR/PLN" value="100519"/>
+		<entry  key="GBP/PLN" value="100521"/>
+		<entry  key="USD/PLN" value="100523"/>
+		<entry  key="EUR/SEK" value="100525"/>
+		<entry  key="GBP/SEK" value="100527"/>
+		<entry  key="USD/SEK" value="100529"/>
+		<entry  key="EUR/SGD" value="100531"/>
+		<entry  key="GBP/SGD" value="100533"/>
+		<entry  key="USD/SGD" value="100535"/>
+		<entry  key="USD/TRY" value="100541"/>
+		<entry  key="EUR/ZAR" value="100543"/>
+		<entry  key="GBP/ZAR" value="100545"/>
+		<entry  key="USD/ZAR" value="100547"/>
+		<entry  key="NZD/USD" value="100613"/>
+		<entry  key="AUD/NZD" value="100615"/>
+		<entry  key="NZD/JPY" value="100617"/>
+		<entry  key="AUD/CHF" value="100619"/>
+		<entry  key="AUD/CAD" value="100667"/>
+		<entry  key="CAD/CHF" value="100671"/>
+		<entry  key="CAD/JPY" value="100669"/>
+		<entry  key="NZD/CAD" value="100673"/>
+		<entry  key="NZD/CHF" value="100675"/>
+		<entry  key="NZD/SGD" value="100677"/>
+		<entry  key="EUR/RUB" value="100679"/>
+		<entry  key="USD/CNH" value="100892"/>
+		<entry  key="USD/XVN" value="100889"/>
+		<entry  key="NOK/SEK" value="100555"/>
+		<entry  key="USD/RUB" value="100681"/>
+		<entry  key="EUR/TRY" value="100537"/>
+		<entry  key="GBP/TRY" value="100539"/>
+		<entry  key="USD/ILS" value="100927"/>
+		<entry  key="XPT/USD" value="100806"/>
+		<entry  key="XPD/USD" value="100807"/>
+		<entry  key="XAU/AUD" value="100803"/>
+		<entry  key="XAG/AUD" value="100804"/>
+		<entry  key="XAU/EUR" value="100925"/>
+		<entry  key="XAU/USD" value="100637"/>
+		<entry  key="XAG/USD" value="100639"/>
+	 </map>
+    </property>
+</bean>
+</beans>
+

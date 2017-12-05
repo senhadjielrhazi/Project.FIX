@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.marketcetera.client.sa;singleton:=true
+Bundle-Vendor: Marketcetera, Inc.
+Bundle-Name: Marketcetera SA Client Library
+Bundle-Version: 2.4.3
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: org.marketcetera.core,
+ org.marketcetera.modules.remote.emitter
+Eclipse-RegisterBuddy: org.marketcetera.core
+Export-Package: org.marketcetera.client.sa,
+ org.marketcetera.client.sa.jms,
+ org.marketcetera.ws.client
+Import-Package: junit.framework;resolution:=optional,
+ org.hamcrest;resolution:=optional,
+ org.junit;resolution:=optional,
+ org.mockito;resolution:=optional

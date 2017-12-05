@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Main server configuration.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+  
+  <import resource="properties.xml"/>
+  <import resource="messaging/main.xml"/>
+  <import resource="brokers/main.xml"/>
+  <import resource="filters/main.xml"/>
+  <import resource="db/main.xml"/>
+  <import resource="jobs/main.xml"/>
+  
+  <bean class="org.marketcetera.server.ws.config.SpringConfig">
+    <!-- The brokers. -->
+    <property name="brokers" ref="metc_brokers"/>
+    
+    <!--
+      - A 'MessageFilter' instance, applied to messages received from all
+      - brokers.
+      -->
+    <!--
+    <property name="supportedMessages" ref="metc_supported_messages"/>
+    -->
+    
+    <!--
+      - An 'BasicFilter' instance, applied to messages received from all
+      - Clients.
+      -->
+    <!-- property name="allowedRequests">
+        <list>
+            <ref bean="metc_allowed_orders"/>
+            <ref bean="metc_restricted_users"/>
+        </list>
+    </property-->
+    
+    <!-- The WS hostname. -->
+    <property name="serverHost" value="${metc.ws.host}"/>
+    
+    <!-- The WS port. -->
+    <property name="serverPort" value="${metc.ws.port}"/>
+    
+    <!--
+      - The length of a WS session, in seconds; -1 means sessions
+      - never expire.
+      -->
+    <property name="serverSessionLife" value="${metc.ws.session.life}"/>
+    
+    <!-- The connection factory for incoming JMS connections. -->
+    <property name="incomingConnectionFactory" ref="metc_connection_factory_in"/>
+    
+    <!-- The connection factory for outgoing JMS connections. -->
+    <property name="outgoingConnectionFactory" ref="metc_connection_factory_out"/>
+    
+    <!-- The context class provider. -->
+    <property name="contextClassProvider">
+          <bean class="org.marketcetera.client.ws.jms.WSContextClassProvider"/>
+    </property>
+    
+    <!-- The ID generation factory. -->
+    <property name="IDFactory" ref="id_factory"/>
+    
+  	<!-- The history service provider. -->
+    <property name="historyService" ref="history_service"/>
+    
+    <!-- The job's user. -->
+    <property name="jobsUser" value="${metc.amq.user}"/>
+    
+    <!-- The list of jobs. -->
+    <property name="basicJobs" ref="metc_data_jobs"/>
+    
+    <!-- The pool data source. -->
+    <property name="dataSource" ref="metc_sql_pool"/>
+    </bean>
+    
+    <!-- The ID generation factory. -->
+    <bean id="id_factory" class="org.marketcetera.core.DatabaseIDFactory"/>
+
+  	<!-- The history service provider. -->
+    <bean id="history_service" class="org.marketcetera.server.ws.history.HistoryServiceImpl"/>    
+</beans>

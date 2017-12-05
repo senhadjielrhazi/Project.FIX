@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Broker configuration: response message modifiers.
+  -->
+
+<beans
+ xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+  <bean id="lm_data_resp_modifiers" class="org.marketcetera.ws.server.filters.MessageModifierManager">
+    <!-- The message modifiers. -->
+    <property name="messageModifiers">
+      <list>
+        <bean class="org.marketcetera.server.ws.filters.lm.RespMessageModifier">
+          <!-- Modifications to the symbols fields. -->
+    	  <property name="symbolConverter" ref="lm_symbolConverter"/>
+        </bean>
+      </list>
+    </property>
+  </bean>
+</beans>

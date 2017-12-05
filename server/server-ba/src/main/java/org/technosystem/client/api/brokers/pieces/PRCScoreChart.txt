@@ -1,0 +1,655 @@
+package org.technosystem.client.api.brokers.pieces;
+
+import java.util.*;
+import java.util.List;
+
+import com.dukascopy.api.*;
+
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.OHLCDataItem;
+import org.jfree.data.xy.OHLCDataset;
+import org.jfree.ui.RefineryUtilities;
+import org.jfree.chart.axis.SegmentedTimeline;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.CandlestickRenderer;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+
+import org.jfree.data.xy.XYDataset;
+import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.time.Millisecond;
+
+import java.awt.*;
+import java.awt.event.WindowEvent;
+import javax.swing.JFrame;
+
+@RequiresFullAccess
+@Library("jcommon-1.0.21.jar;jfreechart-1.0.16.jar;")
+public class PRCScoreChart extends JFrame implements IStrategy {
+    private IEngine engine;
+    private IConsole console;
+    private IHistory history;
+    private IContext context;
+    private IIndicators indicators;
+    private IUserInterface userInterface;
+    private List<Instrument> m_instruments = null;
+    private int mvaS = 5;
+    private int mvaL = 30;
+    
+    private Period m_PeriodB = Period.FIVE_MINS;
+    private Period m_PeriodT = Period.TEN_SECS;
+    private Integer m_timeNB = 24*12;//1d
+
+    private static String m_title = "Currency PRCScore";
+    private static Instrument m_defaultInstrument = Instrument.EURUSD;
+    private Map<String, DataSetOHLC> m_dataSets = new HashMap<>();
+    private List<Long> m_initBarTimes = null;
+    private List<String> m_CCYs = null;
+    private JFreeChart m_jfreechart = null;
+    private CombinedDomainXYPlot m_mainPlot = null;
+    private boolean m_startRefresh = false;
+    
+    public static SegmentedTimeline newTradingTimeline() {
+        SegmentedTimeline timeline 
+            = new SegmentedTimeline(SegmentedTimeline.HOUR_SEGMENT_SIZE, 121, 47);
+        timeline.setStartTime(SegmentedTimeline.FIRST_MONDAY_AFTER_1900+164*SegmentedTimeline.HOUR_SEGMENT_SIZE);
+        return timeline;
+    }
+    
+    public void createScoreDataChart() throws JFException{
+        // Title
+        setTitle(m_title);
+        // Data
+        m_dataSets = createDataset();
+        //Shared date axis
+        DateAxis                domainAxis = new DateAxis("Date");
+        domainAxis.setTimeline(newTradingTimeline());
+        //Build Combined Plot
+        m_mainPlot = new CombinedDomainXYPlot(domainAxis);
+       
+        for(String ccy:m_CCYs){
+            //Build Candlestick Chart based on stock price OHLC
+            DataSetOHLC         priceDataset  = m_dataSets.get(ccy);
+            NumberAxis          priceAxis     = new NumberAxis(ccy);
+            CandlestickRenderer priceRenderer = new CandlestickRenderer();
+            XYPlot              pricePlot     = new XYPlot(priceDataset, domainAxis, priceAxis, priceRenderer);
+            priceRenderer.setSeriesPaint(0, Color.BLACK); 
+            
+            //MVA5
+            XYDataset datasetmvaS = priceDataset.createMovingAverage("SMAS", mvaS);
+            pricePlot.setDataset(1, datasetmvaS);
+            StandardXYItemRenderer mvaRenderermvaS =  new StandardXYItemRenderer();
+            mvaRenderermvaS.setSeriesPaint(0, Color.green.darker());
+            pricePlot.setRenderer(1, mvaRenderermvaS);
+            
+            //MVA30
+            XYDataset datasetmvaL = priceDataset.createMovingAverage("SMAL", mvaL);
+            pricePlot.setDataset(2, datasetmvaL);
+            StandardXYItemRenderer mvaRenderermvaL  =  new StandardXYItemRenderer();
+            mvaRenderermvaL.setSeriesPaint(0, Color.blue);
+            pricePlot.setRenderer(2, mvaRenderermvaL);
+            
+            
+            priceRenderer.setDrawVolume(false);
+            priceAxis.setAutoRangeIncludesZero(false);
+            m_mainPlot.add(pricePlot);
+        }
+        
+        m_jfreechart = new JFreeChart("DataScore", null, m_mainPlot, false);
+        final ChartPanel chartPanel = new ChartPanel(m_jfreechart);
+        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
+        chartPanel.setMouseZoomable(true, false);
+        setContentPane(chartPanel);
+        
+        pack();
+        RefineryUtilities.centerFrameOnScreen(this);
+        setVisible(true); 
+    }
+    
+    
+    public Map<String, List<Double>> getCCYScoreMap(long currTime_s, long currTime_e) throws JFException{
+        // Instrument 1Min Score
+        Map<String, List<Double>> ResultMap = new HashMap<>();
+        for (Instrument key : m_instruments){
+            List<IBar> bidkey1 = history.getBars(key, m_PeriodT, OfferSide.BID, Filter.WEEKENDS, currTime_s, currTime_e);
+            List<IBar> askkey1 = history.getBars(key, m_PeriodT, OfferSide.ASK, Filter.WEEKENDS, currTime_s, currTime_e);
+           
+            IBar bidkey0 = history.getBars(key, m_PeriodB, OfferSide.BID, Filter.WEEKENDS, 1, m_initBarTimes.get(0), 0).get(0);
+            IBar askkey0 = history.getBars(key, m_PeriodB, OfferSide.ASK, Filter.WEEKENDS, 1, m_initBarTimes.get(0), 0).get(0);
+            double keyClose0 =(bidkey0.getClose() + askkey0.getClose()) / 2.0;
+             
+            String ccy0 = key.getPrimaryJFCurrency().getSymbol();
+            String ccy1 = key.getSecondaryJFCurrency().getSymbol();
+            for(int i = 0; i < bidkey1.size(); i++){
+                double keyClose1 = (bidkey1.get(i).getClose() + askkey1.get(i).getClose()) / 2.0;
+                double keyScore = Math.round(100.0*(keyClose1-keyClose0)/keyClose0*1000.0)/1000.0;
+                // CCY 1Min Score
+                if(!ResultMap.keySet().contains(ccy0)){
+                    List<Double> arr = new ArrayList<Double>();
+                    while(arr.size() < bidkey1.size()) arr.add(0.0);
+                    ResultMap.put(ccy0, arr);                      
+                }
+                ResultMap.get(ccy0).set(i, ResultMap.get(ccy0).get(i)+keyScore);
+                // CCY 1Min Score
+                if(!ResultMap.keySet().contains(ccy1)){
+                    List<Double> arr = new ArrayList<Double>();
+                    while(arr.size() < bidkey1.size()) arr.add(0.0);
+                    ResultMap.put(ccy1, arr);                      
+                }
+                ResultMap.get(ccy1).set(i, ResultMap.get(ccy1).get(i)-keyScore);
+            }
+        }
+        return ResultMap;
+    }
+    
+    
+    public void refresh(Period period) throws JFException{
+        long currTime_e = history.getBar(m_instruments.get(0), m_PeriodT, OfferSide.BID, 0).getTime();
+        for (Instrument key : m_instruments){
+            currTime_e = Math.min(currTime_e, history.getBar(key, m_PeriodT, OfferSide.BID, 0).getTime());
+        }
+        long currTime_s = m_initBarTimes.get(m_initBarTimes.size()-1); 
+                                    
+        // CCY 1Min Score  
+        Map<String, List<Double>> CCYs = getCCYScoreMap(currTime_s, currTime_e); 
+        for(Map.Entry<String, DataSetOHLC> entry : m_dataSets.entrySet()){
+            String ccy = entry.getKey();
+            List<Double> keyScore = CCYs.get(ccy);
+            
+            OHLCDataItem item = entry.getValue().getLastItem();
+            Date date = item.getDate();
+            double high = Math.max(Collections.max(keyScore), (Double)item.getHigh());
+            double low = Math.min(Collections.min(keyScore), (Double)item.getLow());
+            double open = (Double)item.getOpen();
+            double close = keyScore.get(keyScore.size()-1);
+   
+            m_dataSets.get(ccy).setLastItem(new OHLCDataItem(date, open, high, low, close, 0.0));
+            if(period.equals(m_PeriodB)){
+                m_initBarTimes.add(currTime_e);
+                m_dataSets.get(ccy).addItem(new OHLCDataItem(new Date(currTime_e), close, close, close, close, 0.0));          
+            }
+        }
+        
+        //Update charts
+        for(Object data:m_mainPlot.getSubplots()){
+           XYPlot plot = (XYPlot)data;
+           String ccy = plot.getRangeAxis().getLabel();
+           plot.setDataset(0, m_dataSets.get(ccy));
+           plot.setDataset(1,  m_dataSets.get(ccy).createMovingAverage("SMAS", mvaS));
+           plot.setDataset(2,  m_dataSets.get(ccy).createMovingAverage("SMAL", mvaL));
+       }
+    }
+    
+    
+    private Map<String, DataSetOHLC> createDataset() throws JFException{
+        // The OHLC time series
+        Map<String, DataSetOHLC> CCYTimeSeries = new HashMap<>();
+        for(Instrument instrument:m_instruments){
+            String ccy0 = instrument.getPrimaryJFCurrency().getSymbol();
+            if(!CCYTimeSeries.keySet().contains(ccy0)){
+                CCYTimeSeries.put(ccy0, new DataSetOHLC(ccy0));
+            }
+            String ccy1 = instrument.getSecondaryJFCurrency().getSymbol();
+            if(!CCYTimeSeries.keySet().contains(ccy1)){
+                CCYTimeSeries.put(ccy1, new DataSetOHLC(ccy1));
+            }
+        }
+        
+        long currTime_s = 0, currTime_e = 0;  
+        for(int k = 0; k < m_initBarTimes.size()-1 ; k++){
+            currTime_s = m_initBarTimes.get(k);
+            currTime_e = m_initBarTimes.get(k+1);
+            // CCY 1Min Score
+            Map<String, List<Double>> CCYs = getCCYScoreMap(currTime_s, currTime_e);
+            for (String key : CCYTimeSeries.keySet()){
+                List<Double> keyScore = CCYs.get(key);
+                Date date = new Date(currTime_s);
+                double high = Collections.max(keyScore);
+                double low = Collections.min(keyScore);
+                double open = keyScore.get(0);
+                double close = keyScore.get(keyScore.size()-1);
+                
+                OHLCDataItem item = new OHLCDataItem(date, open, high, low, close, 0.0);
+                CCYTimeSeries.get(key).addItem(item);
+            } 
+        }
+        // Current Tick
+        for (String key : CCYTimeSeries.keySet()){
+            OHLCDataItem item = CCYTimeSeries.get(key).getLastItem();
+            double close = (Double)item.getClose();
+            CCYTimeSeries.get(key).addItem(new OHLCDataItem(new Date(currTime_e), close, close, close, close, 0.0));          
+        }
+                 
+        return CCYTimeSeries;
+    }
+
+
+    public void onStart(IContext context) throws JFException {
+        this.m_startRefresh = false;
+        this.engine = context.getEngine();
+        this.console = context.getConsole();
+        this.history = context.getHistory();
+        this.context = context;
+        this.indicators = context.getIndicators();
+        this.userInterface = context.getUserInterface();
+        
+        m_instruments = new ArrayList<Instrument>();
+        m_instruments.add(Instrument.AUDCAD);
+        m_instruments.add(Instrument.AUDCHF);
+        m_instruments.add(Instrument.AUDJPY);
+        m_instruments.add(Instrument.AUDNZD);
+        m_instruments.add(Instrument.AUDUSD);
+        m_instruments.add(Instrument.CADCHF);
+        m_instruments.add(Instrument.CADJPY);
+        m_instruments.add(Instrument.CHFJPY);
+        m_instruments.add(Instrument.EURAUD);
+        m_instruments.add(Instrument.EURCAD);
+        m_instruments.add(Instrument.EURCHF);
+        m_instruments.add(Instrument.EURGBP);
+        m_instruments.add(Instrument.EURJPY);
+        m_instruments.add(Instrument.EURNZD);
+        m_instruments.add(Instrument.EURUSD);
+        m_instruments.add(Instrument.GBPAUD);
+        m_instruments.add(Instrument.GBPCAD);
+        m_instruments.add(Instrument.GBPCHF);
+        m_instruments.add(Instrument.GBPJPY);
+        m_instruments.add(Instrument.GBPNZD);
+        m_instruments.add(Instrument.GBPUSD);
+        m_instruments.add(Instrument.NZDCAD);
+        m_instruments.add(Instrument.NZDCHF);
+        m_instruments.add(Instrument.NZDJPY);
+        m_instruments.add(Instrument.NZDUSD);
+        m_instruments.add(Instrument.USDCAD);
+        m_instruments.add(Instrument.USDCHF);
+        m_instruments.add(Instrument.USDJPY);
+        
+        m_CCYs = new ArrayList<>();
+        m_CCYs.add("GBP");
+        m_CCYs.add("EUR");
+        m_CCYs.add("CHF");
+        m_CCYs.add("JPY");
+        m_CCYs.add("USD");
+        m_CCYs.add("CAD");
+        m_CCYs.add("AUD");
+        m_CCYs.add("NZD");
+        
+        // Dates for the charts
+        m_initBarTimes = new ArrayList<>();
+        long currTime = history.getBar(m_defaultInstrument, m_PeriodB, OfferSide.BID,0).getTime();
+        List<IBar> bars = history.getBars(m_defaultInstrument, m_PeriodB, OfferSide.BID, Filter.WEEKENDS, m_timeNB, currTime, 0);              
+        for(int i = 0; i < bars.size(); i++){
+            m_initBarTimes.add(bars.get(i).getTime());                     
+        }
+        
+        Thread one = new Thread() {
+            public void run() {
+                try {
+                    synchronized(m_instruments){
+                        createScoreDataChart();
+                        m_startRefresh  = true;
+                    }
+                } catch(JFException v) {printOut("ERROR CreateScoreDataChart: " +v);}
+            }  
+        };
+        one.start();
+    }
+    
+    private void printOut(String s)
+    {
+        console.getOut().println(s);
+    }
+
+    public void onAccount(IAccount account) throws JFException {
+    }
+
+    public void onMessage(IMessage message) throws JFException {
+    }
+
+    public void onStop() throws JFException {
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+        m_instruments = null;
+        m_dataSets = null;
+        m_jfreechart = null;
+    }
+
+    public void onTick(Instrument instrument, ITick tick) throws JFException {
+    }
+    
+    public void onBar(Instrument instrument, Period period, IBar askBar, IBar bidBar) throws JFException {
+        if(m_defaultInstrument.equals(instrument) && (period.equals(m_PeriodT) || period.equals(m_PeriodB)) && m_startRefresh ){
+            synchronized(m_instruments){
+                refresh(period);
+            }
+        }
+    }
+    
+    
+// OHLCDataset
+/***************************************************************************************************************************/        
+   public class DataSetOHLC extends AbstractXYDataset 
+                                implements OHLCDataset {
+
+    /** The series key. */
+    private Comparable key;
+    
+    /** Storage for the data items. */
+    private List<OHLCDataItem> data = new ArrayList<OHLCDataItem>();
+    
+    /**
+     * Creates a new dataset.
+     * 
+     * @param key  the series key.
+     * @param data  the data items.
+     */
+    public DataSetOHLC(Comparable key, List<OHLCDataItem> data) {
+        this.key = key;
+        this.data.addAll(data);
+    }
+    public DataSetOHLC(Comparable key) {
+        this.key = key;
+    }
+    /**
+     * Add an item to the list
+     */
+    public void addItem(OHLCDataItem item){
+        data.add(item);
+    }
+    
+    /**
+     * get the Last item from the list
+     */
+    public OHLCDataItem getLastItem(){
+        return data.get(this.data.size()-1);
+    }
+    
+    /**
+     * set the last item to the list
+     */
+    public void setLastItem(OHLCDataItem item){
+        data.set(this.data.size()-1, item);
+    }
+    /**
+     * Returns the series of SMA. 
+     * 
+     * @param name  the series names.
+     * @param periods  the series periods.
+     * 
+     * @return The series.
+     */
+    public XYDataset createMovingAverage(String name, int period){
+        TimeSeriesCollection tsc = new TimeSeriesCollection();
+        TimeSeries series = new TimeSeries(name);
+        for (int j = 0; j < data.size(); j++) {
+            int start = 0;
+            int end = 0;
+            double value = 0.0;
+            Date date = data.get(j).getDate();
+            if(j < period){
+                start = 0;end = j;
+            }else{
+                start = j-period;end = j; 
+            }
+            for(int k = start; k <= end; k++){
+                value += data.get(k).getClose().doubleValue()/(end-start+1);
+            }
+            series.add(new Millisecond(date), value);
+        }
+        tsc.addSeries(series);
+        
+        return tsc;
+    }
+    
+    /**
+     * Returns the series key. 
+     * 
+     * @param series  the series index (ignored).
+     * 
+     * @return The series key.
+     */
+    public Comparable getSeriesKey(int series) {
+        return this.key;
+    }
+
+    /**
+     * Returns the x-value for a data item.
+     * 
+     * @param series  the series index (ignored).
+     * @param item  the item index (zero-based).
+     * 
+     * @return The x-value.
+     */
+    public Number getX(int series, int item) {
+        return new Long(this.data.get(item).getDate().getTime());
+    }
+
+    /**
+     * Returns the x-value for a data item as a date.
+     * 
+     * @param series  the series index (ignored).
+     * @param item  the item index (zero-based).
+     * 
+     * @return The x-value as a date.
+     */
+    public Date getXDate(int series, int item) {
+        return this.data.get(item).getDate();
+    }
+
+    /**
+     * Returns the y-value.
+     * 
+     * @param series  the series index (ignored).
+     * @param item  the item index (zero-based).
+     * 
+     * @return The y value.
+     */
+    public Number getY(int series, int item) {
+        return getClose(series, item);
+    }
+
+    /**
+     * Returns the high value.
+     * 
+     * @param series  the series index (ignored).
+     * @param item  the item index (zero-based).
+     * 
+     * @return The high value.
+     */
+    public Number getHigh(int series, int item) {
+        return this.data.get(item).getHigh();
+    }
+    
+    /**
+     * Returns the high-value (as a double primitive) for an item within a 
+     * series.
+     * 
+     * @param series  the series (zero-based index).
+     * @param item  the item (zero-based index).
+     * 
+     * @return The high-value.
+     */
+    public double getHighValue(int series, int item) {
+        double result = Double.NaN;
+        Number high = getHigh(series, item);
+        if (high != null) {
+            result = high.doubleValue();   
+        }
+        return result;   
+    }
+
+    /**
+     * Returns the low value.
+     * 
+     * @param series  the series index (ignored).
+     * @param item  the item index (zero-based).
+     * 
+     * @return The low value.
+     */
+    public Number getLow(int series, int item) {
+        return this.data.get(item).getLow();
+    }
+
+    /**
+     * Returns the low-value (as a double primitive) for an item within a 
+     * series.
+     * 
+     * @param series  the series (zero-based index).
+     * @param item  the item (zero-based index).
+     * 
+     * @return The low-value.
+     */
+    public double getLowValue(int series, int item) {
+        double result = Double.NaN;
+        Number low = getLow(series, item);
+        if (low != null) {
+            result = low.doubleValue();   
+        }
+        return result;   
+    }
+
+    /**
+     * Returns the open value.
+     * 
+     * @param series  the series index (ignored).
+     * @param item  the item index (zero-based).
+     * 
+     * @return The open value.
+     */
+    public Number getOpen(int series, int item) {
+        return this.data.get(item).getOpen();
+    }
+
+    /**
+     * Returns the open-value (as a double primitive) for an item within a 
+     * series.
+     * 
+     * @param series  the series (zero-based index).
+     * @param item  the item (zero-based index).
+     * 
+     * @return The open-value.
+     */
+    public double getOpenValue(int series, int item) {
+        double result = Double.NaN;
+        Number open = getOpen(series, item);
+        if (open != null) {
+            result = open.doubleValue();   
+        }
+        return result;   
+    }
+
+    /**
+     * Returns the close value.
+     * 
+     * @param series  the series index (ignored).
+     * @param item  the item index (zero-based).
+     * 
+     * @return The close value.
+     */
+    public Number getClose(int series, int item) {
+        return this.data.get(item).getClose();
+    }
+
+    /**
+     * Returns the close-value (as a double primitive) for an item within a 
+     * series.
+     * 
+     * @param series  the series (zero-based index).
+     * @param item  the item (zero-based index).
+     * 
+     * @return The close-value.
+     */
+    public double getCloseValue(int series, int item) {
+        double result = Double.NaN;
+        Number close = getClose(series, item);
+        if (close != null) {
+            result = close.doubleValue();   
+        }
+        return result;   
+    }
+
+    /**
+     * Returns the trading volume.
+     * 
+     * @param series  the series index (ignored).
+     * @param item  the item index (zero-based).
+     * 
+     * @return The trading volume.
+     */
+    public Number getVolume(int series, int item) {
+        return this.data.get(item).getVolume();
+    }
+
+    /**
+     * Returns the volume-value (as a double primitive) for an item within a 
+     * series.
+     * 
+     * @param series  the series (zero-based index).
+     * @param item  the item (zero-based index).
+     * 
+     * @return The volume-value.
+     */
+    public double getVolumeValue(int series, int item) {
+        double result = Double.NaN;
+        Number volume = getVolume(series, item);
+        if (volume != null) {
+            result = volume.doubleValue();   
+        }
+        return result;   
+    }
+
+    /**
+     * Returns the series count.
+     * 
+     * @return 1.
+     */
+    public int getSeriesCount() {
+        return 1;
+    }
+
+    /**
+     * Returns the item count for the specified series.
+     * 
+     * @param series  the series index (ignored).
+     * 
+     * @return The item count.
+     */
+    public int getItemCount(int series) {
+        return this.data.size();
+    }
+   
+    /**
+     * Sorts the data into ascending order by date.
+     */
+    public void sortDataByDate() {
+        //Arrays.sort(this.data);    
+    }
+    
+    /**
+     * Tests this instance for equality with an arbitrary object.
+     * 
+     * @param obj  the object (<code>null</code> permitted).
+     * 
+     * @return A boolean.
+     */
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;   
+        }
+        if (!(obj instanceof DataSetOHLC)) {
+            return false;   
+        }
+        DataSetOHLC that = (DataSetOHLC) obj;
+        if (!this.key.equals(that.key)) {
+            return false;   
+        }
+        if (this.data != that.data) {
+            return false;   
+        }
+        return true;
+    }    
+}
+}

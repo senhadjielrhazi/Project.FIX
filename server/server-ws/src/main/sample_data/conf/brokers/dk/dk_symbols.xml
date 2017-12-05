@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+ xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://www.springframework.org/schema/beans
+  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+<bean id="dk_symbolConverter" class="org.marketcetera.server.ws.filters.SymbolConverter">
+   <property name="symbols">
+	<map>
+		<entry  key="UK100" value="GBR.IDX/GBP"/>
+		<entry  key="US30" value="USA30.IDX/USD"/>
+		<entry  key="US500" value="USA500.IDX/USD"/>
+		<entry  key="US100" value="USATECH.IDX/USD"/>
+		<entry  key="GER30" value="DEU.IDX/EUR"/>
+		<entry  key="FRA40" value="FRA.IDX/EUR"/>
+		<entry  key="EU50" value="EUS.IDX/EUR"/>
+		<entry  key="JAP225" value="JPN.IDX/JPY"/>
+		<entry  key="AUS200" value="AUS.IDX/AUD"/>
+		<entry  key="SPA35" value="ESP.IDX/EUR"/>
+		<entry  key="CHNIND" value="CHE.IDX/CHF"/>
+		<entry  key="HKIND" value="HKG.IDX/HKD"/>
+		<entry  key="BRENT" value="BRENT.CMD/USD"/>
+		<entry  key="WTI" value="LIGHT.CMD/USD"/>
+	 </map>
+    </property>
+</bean>
+</beans>
+

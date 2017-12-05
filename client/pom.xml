@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Author: anshul@marketcetera.com
+  - Since: 0.9.0
+  - Version: $Id: pom.xml 16971 2015-01-09 23:42:42Z colin $
+  - $License$
+  -->
+
+<project
+ xmlns="http://maven.apache.org/POM/4.0.0"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation=
+ "http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+      <groupId>org.marketcetera</groupId>
+      <artifactId>public-parent</artifactId>
+      <version>2.4.3</version>
+  </parent>
+  <artifactId>client</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Client Libraries</name>
+
+  <modules>
+    <module>client-ws</module>
+    <module>client-sa</module>
+  </modules>
+</project>

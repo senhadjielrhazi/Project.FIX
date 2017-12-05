@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  - Main server configuration.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+  
+  <import resource="properties.xml"/>
+  <import resource="brokers/main.xml"/>
+  <import resource="filters/main.xml"/>
+  
+  <bean class="org.marketcetera.server.ba.config.SpringConfig">
+    <!-- The brokers. -->
+    <property name="brokers" ref="metc_brokers"/>
+    
+    <!--
+      - A 'MessageFilter' instance, applied to messages received from all
+      - brokers.
+      -->
+    <!--
+    <property name="supportedMessages" ref="metc_supported_messages"/>
+    -->
+    
+    <!--
+      - An 'BasicFilter' instance, applied to messages received from all
+      - Clients.
+      -->
+    <!-- property name="allowedRequests">
+        <list>
+            <ref bean="metc_allowed_orders"/>
+            <ref bean="metc_restricted_users"/>
+        </list>
+    </property-->
+    
+  </bean>   
+</beans>
